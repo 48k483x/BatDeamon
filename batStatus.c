@@ -6,6 +6,7 @@
 # include <libnotify/notify.h>
 
 int totalMins = 0;
+char totalM[1000000];
 int totalHours = 0;
 
 int getBatteryCapacity()
@@ -38,10 +39,13 @@ char *getCurrentTime()
 void setNotif(char *notif, char *batCap)
 {
     char details[100];
+    char title[100];
 
     snprintf(details, sizeof(details), "Your Battery Now Is > %s%%", batCap); 
+    snprintf(title, sizeof(title), "After > %s%%", notif);
+
     notify_init("Battery Monitor");
-    NotifyNotification * Hello = notify_notification_new(notif, details, "dialog information");
+    NotifyNotification * Hello = notify_notification_new(title, details, "dialog information");
     notify_notification_set_timeout(Hello, 5000);
     if (!(notify_notification_show (Hello, NULL))) fprintf(stderr, "failed to push notification");
     
@@ -53,6 +57,7 @@ int main ( void )
 {
     int BatCapacity;
     char battery[4];
+    char timeChar[10];
     int LoopBattery;
     char *time_str;
     time_t start, current;
@@ -63,7 +68,9 @@ int main ( void )
     BatCapacity = getBatteryCapacity();
     time_str = getCurrentTime();
     snprintf(battery, sizeof(battery), "%d", BatCapacity);
-    setNotif("Battery Status", battery);
+    snprintf(timeChar, sizeof(timeChar), "%ld", start);
+    printf("%s\n", timeChar);
+    setNotif(timeChar, battery);
 
     while (1337)
     {
@@ -75,7 +82,11 @@ int main ( void )
             diff /= 60;
             totalMins += diff;
             BatCapacity = LoopBattery;
-
+            snprintf(totalM, sizeof(totalM), "%f", diff);
+            snprintf(battery, sizeof(battery), "%d", BatCapacity);
+            setNotif(totalM, battery);
         }
+        else continue ;
+
     }
 }
