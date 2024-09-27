@@ -20,6 +20,7 @@ int getBatteryCapacity()
     
     if (fgets(buf, sizeof(buf), fp) != NULL) capacity = atoi(buf);
     else perror("fgets can't read the next char!");
+    fclose(fp);
     return capacity;
 }
 
@@ -42,7 +43,7 @@ void setNotif(char *notif, char *batCap)
     char title[100];
 
     snprintf(details, sizeof(details), "Your Battery Now Is > %s%%", batCap); 
-    snprintf(title, sizeof(title), "After > %s%%", notif);
+    snprintf(title, sizeof(title), "After > %s Min", notif);
 
     notify_init("Battery Monitor");
     NotifyNotification * Hello = notify_notification_new(title, details, "dialog information");
@@ -69,20 +70,20 @@ int main ( void )
     time_str = getCurrentTime();
     snprintf(battery, sizeof(battery), "%d", BatCapacity);
     snprintf(timeChar, sizeof(timeChar), "%ld", start);
-    printf("%s\n", timeChar);
+    printf("Program started at : %s\n", time_str);
     setNotif(timeChar, battery);
 
     while (1337)
     {
         LoopBattery = getBatteryCapacity();
-        if (LoopBattery == (BatCapacity - 10))
+        if (LoopBattery == (BatCapacity - 1))
         {
             current = time(NULL);
             diff = difftime(current, start);
             diff /= 60;
             totalMins += diff;
             BatCapacity = LoopBattery;
-            snprintf(totalM, sizeof(totalM), "%f", diff);
+            snprintf(totalM, sizeof(totalM), "%.2f", diff);
             snprintf(battery, sizeof(battery), "%d", BatCapacity);
             setNotif(totalM, battery);
         }
