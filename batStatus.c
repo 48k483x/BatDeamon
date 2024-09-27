@@ -5,6 +5,9 @@
 # include <time.h>
 # include <libnotify/notify.h>
 
+int totalMins = 0;
+int totalHours = 0;
+
 int getBatteryCapacity()
 {
     FILE *fp;
@@ -32,11 +35,16 @@ char *getCurrentTime()
     return time_str;
 }
 
-void setNotif(char *notif, char *details)
+void setNotif(char *notif, char *batCap)
 {
-    notify_init(notif);
-    NotifyNotification * Hello = notify_notification_new(notif, details, "dialog info");
-    notify_notification_show (Hello, NULL);
+    char details[100];
+
+    snprintf(details, sizeof(details), "Your Battery Now Is > %s%%", batCap); 
+    notify_init("Battery Monitor");
+    NotifyNotification * Hello = notify_notification_new(notif, details, "dialog information");
+    notify_notification_set_timeout(Hello, 5000);
+    if (!(notify_notification_show (Hello, NULL))) fprintf(stderr, "failed to push notification");
+    
     g_object_unref(G_OBJECT(Hello));
     notify_uninit();
 }
@@ -44,21 +52,30 @@ void setNotif(char *notif, char *details)
 int main ( void )
 {
     int BatCapacity;
+    char battery[4];
     int LoopBattery;
-    
+    char *time_str;
+    time_t start, current;
+    double diff;
+
+    start = time(NULL);
+
     BatCapacity = getBatteryCapacity();
-    //if (BatCapacity != 100)
-        //return (fprintf(stderr, "Warning:Your Battery Capacity should == 100%.\nYour Battey == %d%\n", BatCapacity));
-    char *time_str = getCurrentTime();
-    printf("%s\n", time_str);
-    setNotif(time_str, "Battery level decreased by 10%%");
-/*    while (1337)
+    time_str = getCurrentTime();
+    snprintf(battery, sizeof(battery), "%d", BatCapacity);
+    setNotif("Battery Status", battery);
+
+    while (1337)
     {
         LoopBattery = getBatteryCapacity();
-        if (BatCapacity == 100 && LoopBattery == 90)
+        if (LoopBattery == (BatCapacity - 10))
         {
-            printf();
+            current = time(NULL);
+            diff = difftime(current, start);
+            diff /= 60;
+            totalMins += diff;
+            BatCapacity = LoopBattery;
+
         }
     }
-*/
 }
